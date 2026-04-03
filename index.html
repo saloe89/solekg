@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#9945FF">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#9945FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SolEKG">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolEKG – Solana Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04060f;
+    --surface: rgba(255,255,255,0.03);
+    --card: transparent;
+    --border: rgba(255,255,255,0.07);
+    --sol: #9945FF;
+    --sol2: #14F195;
+    --amber: #FFB800;
+    --red: #FF4757;
+    --text: #14F195;
+    --muted: #0a8a52;
+    --mono: 'Fira Code', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated gradient background */
+  @keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      #04060f 0%,
+      #1a0533 20%,
+      #0a2a1a 40%,
+      #04060f 55%,
+      #0d0133 70%,
+      #031a10 85%,
+      #04060f 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Subtle glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 35% at 85% 15%, rgba(153,69,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 15% 85%, rgba(20,241,149,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 30% 25% at 50% 50%, rgba(153,69,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+    animation: orbShift 16s ease-in-out infinite alternate;
+  }
+
+  @keyframes orbShift {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 16px 100px; }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 0 32px;
+  }
+
+  .logo-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+  }
+  .logo-ekg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+  }
+  .logo-ekg-svg { width: 100%; height: 100%; }
+  .logo-ekg-line {
+    fill: none;
+    stroke: url(#logoGrad);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 200;
+    stroke-dashoffset: 0;
+    animation: logoPulse 2.4s ease-in-out infinite;
+  }
+  .logo-ekg-glow {
+    fill: none;
+    stroke: url(#logoGrad);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.5;
+    animation: logoPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes logoPulse {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px #14F195); }
+    50% { opacity: 0.2; filter: drop-shadow(0 0 2px #9945FF); }
+  }
+  .logo-text {
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 2.2rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+  }
+  .logo-text span:first-child {
+    background: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #c084fc 20%,
+      #9945FF 40%,
+      #6d1fff 55%,
+      #3d0099 70%,
+      #9945FF 85%,
+      #e0c3fc 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(153,69,255,0.9)) drop-shadow(0 -1px 1px rgba(255,255,255,0.3));
+    animation: metalShift 4s ease-in-out infinite;
+  }
+  .logo-text span:last-child {
+    background: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #6effd4 20%,
+      #14F195 40%,
+      #00a866 55%,
+      #005c38 70%,
+      #14F195 85%,
+      #b2ffe8 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(20,241,149,0.9)) drop-shadow(0 -1px 1px rgba(255,255,255,0.3));
+    animation: metalShift 4s ease-in-out infinite 2s;
+  }
+  @keyframes metalShift {
+    0%, 100% { background-position: 0% 0%; filter: drop-shadow(0 2px 6px rgba(153,69,255,0.9)) drop-shadow(0 -1px 2px rgba(255,255,255,0.4)) brightness(1); }
+    50% { background-position: 0% 100%; filter: drop-shadow(0 4px 12px rgba(153,69,255,1)) drop-shadow(0 -2px 4px rgba(255,255,255,0.6)) brightness(1.2); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* SOL Hero Card */
+  .sol-hero {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sol-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(153,69,255,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .sol-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .sol-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .sol-price {
+    font-family: var(--sans);
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .sol-change {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 4px;
+  }
+  .sol-change.up { background: rgba(20,241,149,0.12); color: var(--sol2); }
+  .sol-change.down { background: rgba(255,71,87,0.12); color: var(--red); }
+
+  .sol-icon {
+    width: 80px; height: 40px;
+    position: relative;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ekg-svg {
+    width: 80px; height: 40px;
+    overflow: visible;
+  }
+  .ekg-line {
+    fill: none;
+    stroke: url(#ekgGrad);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px #14F195);
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: ekgDraw 1.2s ease-out forwards, ekgPulse 2.4s ease-in-out 1.2s infinite;
+  }
+  .ekg-glow {
+    fill: none;
+    stroke: url(#ekgGrad);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.15;
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: ekgDraw 1.2s ease-out forwards, ekgPulse 2.4s ease-in-out 1.2s infinite;
+  }
+  @keyframes ekgDraw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes ekgPulse {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px #14F195); }
+    50% { opacity: 0.6; filter: drop-shadow(0 0 8px #9945FF) drop-shadow(0 0 16px #14F195); }
+  }
+100% { left: 100%; }
+  }
+100% { left: 100%; }
+  }
+  .sol-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .sol-stat {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .sol-stat-label { font-family: var(--mono); font-size: 0.58rem; color: var(--muted); letter-spacing: 0.05em; }
+  .sol-stat-val { font-family: var(--sans); font-size: 1rem; color: var(--text); font-weight: 700; letter-spacing: -0.02em; }
+
+
+  
+  .net-link-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .net-link-btn:hover { border-color: var(--sol2); background: rgba(20,241,149,0.05); }
+  .net-link-icon { font-size: 1.4rem; }
+  .net-link-label { font-family: var(--mono); font-size: 0.6rem; color: var(--text); text-align: center; }
+  .net-link-arrow { font-family: var(--mono); font-size: 0.7rem; color: var(--sol2); }
+
+  
+
+  
+
+
+  
+
+
+  /* Chart */
+  .chart-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  #sol-chart { width: 100% !important; }
+
+  /* SKR Card */
+  .skr-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .skr-card::before {
+    content: 'SKR';
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--sans);
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(153,69,255,0.05);
+    letter-spacing: -0.04em;
+    pointer-events: none;
+  }
+  .skr-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .skr-logo {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+  }
+  .skr-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .skr-right { text-align: right; }
+  .skr-price {
+    font-family: var(--sans);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #9945FF, #14F195);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .skr-change {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+  .skr-change.up { color: var(--sol2); }
+  .skr-change.down { color: var(--red); }
+
+  /* Fear & Greed */
+  .fg-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .fg-inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 14px;
+  }
+  .fg-gauge {
+    position: relative;
+    width: 90px; height: 90px; flex-shrink: 0;
+  }
+  .fg-gauge svg { width: 90px; height: 90px; }
+  .fg-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .fg-num { font-family: var(--sans); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+  .fg-tiny { font-family: var(--mono); font-size: 0.5rem; color: var(--muted); }
+  .fg-info { flex: 1; }
+  .fg-label { font-family: var(--sans); font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .fg-desc { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); line-height: 1.6; }
+
+  /* Last updated */
+  .last-updated {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+
+  /* Refresh button */
+  .refresh-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(153,69,255,0.15), rgba(20,241,149,0.1));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--sol); }
+  .refresh-btn:active { transform: scale(0.98); }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--border) 25%, #1e2d55 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  .fade-in:nth-child(1) { animation-delay: 0.1s; }
+  .fade-in:nth-child(2) { animation-delay: 0.2s; }
+  .fade-in:nth-child(3) { animation-delay: 0.3s; }
+  .fade-in:nth-child(4) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-ekg">
+        <svg class="logo-ekg-svg" viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#9945FF"/>
+              <stop offset="50%" stop-color="#14F195"/>
+              <stop offset="100%" stop-color="#9945FF"/>
+            </linearGradient>
+          </defs>
+          <path class="logo-ekg-glow" d="M0,20 L28,20 L32,20 L36,4 L40,36 L44,12 L47,28 L51,20 L80,20"/>
+          <path class="logo-ekg-line" d="M0,20 L28,20 L32,20 L36,4 L40,36 L44,12 L47,28 L51,20 L80,20"/>
+        </svg>
+      </div>
+      <div class="logo-text"><span>Sol</span><span>EKG</span></div>
+    </div>
+  </header>
+
+  <!-- SOL Hero -->
+  <div class="sol-hero fade-in">
+    <div class="sol-top">
+      <div>
+        <div class="sol-name">SOL / USD</div>
+        <div class="sol-price" id="sol-price">—</div>
+        <div class="sol-change" id="sol-change">—</div>
+      </div>
+
+    </div>
+    <div class="sol-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
+      <div class="sol-stat">
+        <div class="sol-stat-label">24H HIGH</div>
+        <div class="sol-stat-val" id="sol-high">—</div>
+      </div>
+      <div class="sol-stat">
+        <div class="sol-stat-label">24H LOW</div>
+        <div class="sol-stat-val" id="sol-low">—</div>
+      </div>
+      <div class="sol-stat">
+        <div class="sol-stat-label">MARKET CAP</div>
+        <div class="sol-stat-val" id="sol-mcap">—</div>
+      </div>
+      <div class="sol-stat">
+        <div class="sol-stat-label">VOLUME 24H</div>
+        <div class="sol-stat-val" id="sol-vol">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKR Card -->
+  <div class="skr-card fade-in">
+    <div class="skr-left">
+      <img class="skr-logo" src="data:image/png;base64,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" alt="SKR"/>
+      <div class="skr-name">SKR / USD</div>
+    </div>
+    <div class="skr-right">
+      <div class="skr-price" id="skr-price">—</div>
+      <div class="skr-change" id="skr-change">—</div>
+    </div>
+  </div>
+
+  <!-- Fear & Greed -->
+  <div class="section-label">Sentiment</div>
+  <div class="fg-card fade-in">
+    <div class="fg-inner">
+      <div class="fg-gauge">
+        <svg viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="38" fill="none" stroke="#1a2444" stroke-width="8"/>
+          <circle cx="45" cy="45" r="38" fill="none" stroke-width="8"
+            stroke-linecap="round"
+            stroke-dasharray="239"
+            stroke-dashoffset="239"
+            id="fg-arc"
+            transform="rotate(-90 45 45)"/>
+        </svg>
+        <div class="fg-number">
+          <div class="fg-num" id="fg-num">—</div>
+          <div class="fg-tiny">/ 100</div>
+        </div>
+      </div>
+      <div class="fg-info">
+        <div class="fg-label" id="fg-label">Loading...</div>
+        <div class="fg-desc" id="fg-desc">Fetching market sentiment data...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="section-label">SOL / USD — 7 DAYS</div>
+  <div class="chart-card fade-in">
+    <canvas id="sol-chart" height="120"></canvas>
+  </div>
+
+  <button class="refresh-btn" onclick="loadAll()">⟳ Refresh Data</button>
+  <div class="last-updated" id="last-updated"></div>
+</div>
+
+<script>
+const fmt = (n, decimals=2) => n?.toLocaleString('en-US', {minimumFractionDigits: decimals, maximumFractionDigits: decimals}) ?? '—';
+const fmtB = n => n >= 1e9 ? '$' + (n/1e9).toFixed(1) + 'B' : n >= 1e6 ? '$' + (n/1e6).toFixed(0) + 'M' : '—';
+const fmtK = n => n >= 1e3 ? (n/1e3).toFixed(1) + 'K' : n?.toFixed(0) ?? '—';
+
+function setChange(el, val) {
+  const up = val >= 0;
+  el.textContent = (up ? '▲ +' : '▼ ') + val.toFixed(2) + '%';
+  el.className = 'sol-change ' + (up ? 'up' : 'down');
+}
+function setCoinChange(el, val) {
+  const up = val >= 0;
+  el.textContent = (up ? '▲ +' : '▼ ') + val.toFixed(2) + '%';
+  el.className = 'coin-change ' + (up ? 'up' : 'down');
+}
+
+
+
+async function loadPrices() {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=solana,seeker&order=market_cap_desc&price_change_percentage=24h&x_cg_demo_api_key=CG-G5fjQ4bn4agszxSwWcpmxqxF');
+    const data = await res.json();
+    const sol = data.find(d => d.id === 'solana');
+    const skr = data.find(d => d.id === 'seeker');
+    if (skr) {
+      document.getElementById('skr-price').textContent = '$' + fmt(skr.current_price, 4);
+      const skrEl = document.getElementById('skr-change');
+      const skrUp = skr.price_change_percentage_24h >= 0;
+      skrEl.textContent = (skrUp ? '▲ +' : '▼ ') + skr.price_change_percentage_24h.toFixed(2) + '%';
+      skrEl.className = 'skr-change ' + (skrUp ? 'up' : 'down');
+    }
+    if (sol) {
+      document.getElementById('sol-price').textContent = '$' + fmt(sol.current_price);
+      setChange(document.getElementById('sol-change'), sol.price_change_percentage_24h);
+      document.getElementById('sol-high').textContent = '$' + fmt(sol.high_24h);
+      document.getElementById('sol-low').textContent = '$' + fmt(sol.low_24h);
+      document.getElementById('sol-mcap').textContent = fmtB(sol.market_cap);
+      document.getElementById('sol-vol').textContent = fmtB(sol.total_volume);
+    }
+  } catch(e) { console.log('Price fetch failed', e); }
+}
+
+
+async function loadFearGreed() {
+  try {
+    const res = await fetch('https://api.alternative.me/fng/');
+    const data = await res.json();
+    const val = parseInt(data.data[0].value);
+    const classification = data.data[0].value_classification;
+
+    document.getElementById('fg-num').textContent = val;
+    document.getElementById('fg-label').textContent = classification;
+
+    const colors = {
+      'Extreme Fear': '#FF4757',
+      'Fear': '#FFB800',
+      'Neutral': '#6b6b78',
+      'Greed': '#14F195',
+      'Extreme Greed': '#9945FF'
+    };
+    const col = colors[classification] || '#14F195';
+    document.getElementById('fg-arc').style.stroke = col;
+    document.getElementById('fg-num').style.color = col;
+    document.getElementById('fg-label').style.color = col;
+
+    const dashoffset = 239 - (val / 100) * 239;
+    document.getElementById('fg-arc').style.strokeDashoffset = dashoffset;
+
+    const descs = {
+      'Extreme Fear': 'Market is in panic. Historically a buying opportunity.',
+      'Fear': 'Investors are worried. Caution advised.',
+      'Neutral': 'Market sentiment is balanced.',
+      'Greed': 'Markets are optimistic. Watch for corrections.',
+      'Extreme Greed': 'Market may be overheated. Be careful.'
+    };
+    document.getElementById('fg-desc').textContent = descs[classification] || '';
+  } catch(e) {}
+}
+
+
+async function loadChart() {
+  try {
+    const key = 'CG-G5fjQ4bn4agszxSwWcpmxqxF';
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=7&x_cg_demo_api_key=' + key);
+    const data = await res.json();
+    const prices = data.prices.map(p => p[1]);
+    const labels = data.prices.map(p => {
+      const d = new Date(p[0]);
+      return d.getMonth()+1 + '/' + d.getDate();
+    });
+    const isUp = prices[prices.length-1] >= prices[0];
+    const color = isUp ? '#14F195' : '#FF4757';
+
+    const canvas = document.getElementById('sol-chart');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.offsetWidth;
+    const h = 120;
+    canvas.width = w * (window.devicePixelRatio||1);
+    canvas.height = h * (window.devicePixelRatio||1);
+    ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+
+    const min = Math.min(...prices), max = Math.max(...prices);
+    const range = max - min || 1;
+    const pad = 20;
+
+    const pts = prices.map((p, i) => ({
+      x: pad + (i / (prices.length-1)) * (w - pad*2),
+      y: h - pad - ((p - min) / range) * (h - pad*2)
+    }));
+
+    // Fill gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, color + '44');
+    grad.addColorStop(1, color + '00');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, h);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length-1].x, h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Price labels
+    ctx.fillStyle = '#4a5480';
+    ctx.font = '10px monospace';
+    ctx.fillText('$' + Math.round(min), 2, h - 4);
+    ctx.fillText('$' + Math.round(max), 2, 14);
+
+  } catch(e) { console.log('Chart error', e); }
+}
+
+async function loadAll() {
+  document.getElementById('last-updated').textContent = 'Refreshing...';
+  await Promise.all([loadPrices(), loadFearGreed(), loadChart()]);
+  const now = new Date();
+  document.getElementById('last-updated').textContent =
+    'Last updated: ' + now.toLocaleTimeString();
+}
+
+loadAll();
+setInterval(loadAll, 60000);
+</script>
+</body>
+</html>
